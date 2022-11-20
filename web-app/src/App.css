@@ -1,0 +1,77 @@
+.App {
+  text-align: center;
+}
+
+.App-logo {
+  height: 40vmin;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .App-logo {
+    animation: App-logo-spin infinite 20s linear;
+  }
+}
+
+.App-header {
+  background-color: #282c34;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: white;
+}
+
+.App-link {
+  color: #61dafb;
+}
+
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+button {
+  background-color: #1237af;
+  border: none;
+  color: white;
+  padding: 15px 32px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  margin: 4px 2px;
+  cursor: pointer;
+}
+
+.ui-primary-input::-webkit-file-upload-button {
+  visibility: hidden;
+  width:0px
+}
+.ui-primary-input::before {
+  content: 'Upload File';
+  display: inline-block;
+  background-color: #1237af;
+  color: white;
+  padding: 15px 32px;
+  outline: none;
+  font-size: 16px;
+  cursor: pointer;
+  white-space: nowrap;
+  -webkit-user-select: none;
+  cursor: pointer;
+  text-align: center;
+  text-decoration: none;
+}
+.ui-primary-input:hover::before {
+  border-color: black;
+}
+.ui-primary-input:active::before {
+  background: -webkit-linear-gradient(top, #1237af, #1237af);
+}
