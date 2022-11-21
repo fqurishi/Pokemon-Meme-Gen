@@ -1,0 +1,13 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/web-app/node_modules
+/saved_models/u2net/u2net.pth
+
+# testing
+/images/blacked/
+/images/no_bg
+
+# production
+/downloads/
+

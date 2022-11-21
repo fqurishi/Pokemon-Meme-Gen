@@ -12,8 +12,33 @@ from torch.autograd import Variable
 from skimage import io, transform
 from PIL import Image
 
+from flask import Flask, flash, request, redirect, url_for, session, send_file
+from werkzeug.utils import secure_filename
+from flask_cors import CORS, cross_origin
+import logging
+
 currentDir = os.path.dirname(__file__)
 
+logging.basicConfig(level=logging.INFO)
+
+logger = logging.getLogger('HELLO WORLD')
+
+app = Flask(__name__)
+CORS(app)
+
+
+# ------- Load Trained Model --------
+print("---Loading Model---")
+model_name = 'u2net'
+model_dir = os.path.join(currentDir, 'saved_models',
+                        model_name, model_name + '.pth')
+net = U2NET(3, 1)
+if torch.cuda.is_available():
+    net.load_state_dict(torch.load(model_dir))
+    net.cuda()
+else:
+    net.load_state_dict(torch.load(model_dir, map_location='cpu'))
+# ------- Load Trained Model --------
 
 def save_output(image_name, output_name, pred, d_dir, type):
     predict = pred
@@ -66,7 +91,7 @@ def removeBg(imagePath):
     mi = torch.min(pred)
     dn = (pred-mi)/(ma-mi)
     pred = dn
-    save_output('Bushna.jpg', unique_filename +
+    save_output(imagePath, unique_filename +
                 '.png', pred, results_dir, 'image')
     #save_output(inputs_dir+unique_filename+'.jpg', unique_filename +
     #            '.png', pred, masks_dir, 'mask')
@@ -85,7 +110,7 @@ def removeBg(imagePath):
     image.putalpha(alpha)
     image.save(results_blk_dir + 'edit.png', "PNG")
     return "---Success---"
-def makeVideo():
+def makeVideo(NameFile):
     print("---Making Video File---")
     clip1 = VideoFileClip("Who_That.mp4").subclip(0,5).fx(vfx.fadeout, 1)
     clip2 = VideoFileClip("Who_That.mp4").subclip(8,13).fx(vfx.fadein,1)
@@ -116,7 +141,7 @@ def makeVideo():
 
     clip1 = VideoFileClip("Who_That_Out1.mp4")
     audio1 = AudioFileClip("Who_That_Out1.mp4").fx(afx.volumex, 2)
-    audio2 = AudioFileClip("Name2.wav")
+    audio2 = AudioFileClip(NameFile)
     audio2 = audio2.set_start(6.875)
 
     audio = CompositeAudioClip([audio1,audio2])
@@ -124,24 +149,43 @@ def makeVideo():
     combined = concatenate_videoclips([clip1])
     combined.audio = audio
 
-    combined.write_videofile("Who_That_Out.mp4")
-    return "---Success---"
-# ------- Load Trained Model --------
-print("---Loading Model---")
-model_name = 'u2net'
-model_dir = os.path.join(currentDir, 'saved_models',
-                         model_name, model_name + '.pth')
-net = U2NET(3, 1)
-if torch.cuda.is_available():
-    net.load_state_dict(torch.load(model_dir))
-    net.cuda()
-else:
-    net.load_state_dict(torch.load(model_dir, map_location='cpu'))
-# ------- Load Trained Model --------
-print("---Removing Background...")
-# ------- Call The removeBg Function --------
-imgPath = "Bushna.jpg"  # Change this to your image path
-print(removeBg(imgPath))
-print(makeVideo())
-os.remove(currentDir + "/Who_That_Out1.mp4") 
+    unique_filename = str(uuid.uuid4())
+    combined.write_videofile("./downloads/Who_That_Out" + unique_filename + ".mp4")
+    return unique_filename
+
+def generatePokemon(ImageFile,NameFile):
+    print("---Removing Background...")
+    # ------- Call The removeBg Function --------
+    imgPath = ImageFile 
+    print(removeBg(imgPath))
+    print("---Making Video...")
+    # ------- Call The makeVideo Function --------
+    videoName = makeVideo(NameFile)
+    video = "downloads\\Who_That_Out" + videoName + ".mp4"
+    return "Who_That_Out" + videoName + ".mp4"
+
+
+@app.route('/upload', methods=['POST'])
+def upload_file():
+    file1 = request.files['file1']
+    file2 = request.files['file2']
+    file3 = request.files['file3']
+    file1.save(f'./uploads/{file1.filename}')
+    file2.save(f'./uploads/{file2.filename}')
+    file3.save(f'./uploads/{file3.filename}')
+    print(file1)
+    print(file2)
+    print(file3)
+    file1Name = (f'./uploads/{file1.filename}')
+    file2Name = (f'./uploads/{file2.filename}')
+    file3Name = (f'./uploads/{file3.filename}')
+    return generatePokemon(file1Name,file2Name)
+
+@app.route('/upload/<path:filename>', methods=['GET', 'POST'])
+def download_file(filename):
+    return send_file('downloads/' + filename)
+
+if __name__ == '__main__':  
+    app.run(debug=True,host="0.0.0.0",port= 5000 ,use_reloader=False)
+
 
