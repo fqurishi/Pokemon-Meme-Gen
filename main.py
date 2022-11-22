@@ -1,4 +1,4 @@
-from moviepy.editor import VideoFileClip, CompositeVideoClip, concatenate_videoclips, vfx, AudioFileClip, CompositeAudioClip, afx, ImageClip
+from moviepy.editor import VideoFileClip, CompositeVideoClip, concatenate_videoclips, vfx, AudioFileClip, CompositeAudioClip, afx, ImageClip, TextClip
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -110,7 +110,7 @@ def removeBg(imagePath):
     image.putalpha(alpha)
     image.save(results_blk_dir + 'edit.png', "PNG")
     return "---Success---"
-def makeVideo(NameFile):
+def makeVideo(NameFile, CryFile, Name):
     print("---Making Video File---")
     clip1 = VideoFileClip("Who_That.mp4").subclip(0,5).fx(vfx.fadeout, 1)
     clip2 = VideoFileClip("Who_That.mp4").subclip(8,13).fx(vfx.fadein,1)
@@ -119,20 +119,25 @@ def makeVideo(NameFile):
     black1 = (ImageClip(black_dir + "edit.png")
             .set_start(1)
             .set_duration(clip1.duration - 1)
-            .set_position((200, 150)).fx(vfx.fadeout, 1))
+            .set_position((150, 150)).fx(vfx.fadeout, 1))
     black2 = (ImageClip(black_dir + "edit.png")
             .set_start(0)
             .set_duration(1)
-            .set_position((200, 150)).fx(vfx.fadein,1))
+            .set_position((150, 150)).fx(vfx.fadein,1))
     color = (ImageClip(color_dir + "edit.png")
             .set_start(1)
             .set_duration(clip1.duration - 1)
-            .set_position((200, 150)).fx(vfx.fadein,1))
+            .set_position((150, 150)).fx(vfx.fadein,1, [9,106,159]))
+    print(currentDir + "/Ketchum.otf")
+    txtClip = (TextClip(Name, fontsize = 96, color = "rgb(254,213,0)", stroke_color="rgb(64,128,207)", stroke_width=5, font=currentDir + "/Ketchum.otf")
+                .set_start(1.5)
+                .set_duration(clip1.duration-1.5)
+                .set_position((785,190)))
 
     clip = CompositeVideoClip([clip1,black1])
     clip1 = clip
 
-    clip = CompositeVideoClip([clip2,black2,color])
+    clip = CompositeVideoClip([clip2,black2,color,txtClip])
     clip2 = clip
 
     combined = concatenate_videoclips([clip1,clip2])
@@ -143,8 +148,10 @@ def makeVideo(NameFile):
     audio1 = AudioFileClip("Who_That_Out1.mp4").fx(afx.volumex, 2)
     audio2 = AudioFileClip(NameFile)
     audio2 = audio2.set_start(6.875)
+    audio3 = AudioFileClip(CryFile)
+    audio3 = audio3.set_start(audio2.duration + 6.875)
 
-    audio = CompositeAudioClip([audio1,audio2])
+    audio = CompositeAudioClip([audio1,audio2,audio3])
 
     combined = concatenate_videoclips([clip1])
     combined.audio = audio
@@ -153,14 +160,14 @@ def makeVideo(NameFile):
     combined.write_videofile("./downloads/Who_That_Out" + unique_filename + ".mp4")
     return unique_filename
 
-def generatePokemon(ImageFile,NameFile):
+def generatePokemon(ImageFile,NameFile,CryFile,Name):
     print("---Removing Background...")
     # ------- Call The removeBg Function --------
     imgPath = ImageFile 
     print(removeBg(imgPath))
     print("---Making Video...")
     # ------- Call The makeVideo Function --------
-    videoName = makeVideo(NameFile)
+    videoName = makeVideo(NameFile,CryFile,Name)
     video = "downloads\\Who_That_Out" + videoName + ".mp4"
     return "Who_That_Out" + videoName + ".mp4"
 
@@ -173,17 +180,16 @@ def upload_file():
     file1.save(f'./uploads/{file1.filename}')
     file2.save(f'./uploads/{file2.filename}')
     file3.save(f'./uploads/{file3.filename}')
-    print(file1)
-    print(file2)
-    print(file3)
+    Name = request.files['name']
+    Name = Name.filename
     file1Name = (f'./uploads/{file1.filename}')
     file2Name = (f'./uploads/{file2.filename}')
     file3Name = (f'./uploads/{file3.filename}')
-    return generatePokemon(file1Name,file2Name)
+    return generatePokemon(file1Name,file2Name,file3Name,Name)
 
 @app.route('/upload/<path:filename>', methods=['GET', 'POST'])
 def download_file(filename):
-    return send_file('downloads/' + filename)
+    return send_file('downloads/' + filename, as_attachment=True)
 
 if __name__ == '__main__':  
     app.run(debug=True,host="0.0.0.0",port= 5000 ,use_reloader=False)

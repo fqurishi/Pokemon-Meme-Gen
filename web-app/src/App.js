@@ -40,9 +40,10 @@ class App extends React.Component {
     formData.append('file1',this.state.selectedFile1, this.state.selectedFile1.name);
     formData.append('file2',this.state.selectedFile2, this.state.selectedFile2.name);
     formData.append('file3',this.state.selectedFile3, this.state.selectedFile3.name);
+    var name = document.getElementById("name").value;
+    formData.append('name',this.state.selectedFile3,name)
     // Send formData object
     const resp = await axios.post("//localhost:5000/upload", formData);
-    console.log(resp.data);
     this.setState({filePath: "http://localhost:5000/upload/" + resp.data})
     this.setState({fileReadyToDownload: true})
   
@@ -85,7 +86,15 @@ class App extends React.Component {
             ref = {fileInput3 => this.fileInput3 = fileInput3}
           />
           <button onClick={() => this.fileInput3.click()}>Upload Battle Cry (.mp3 or .wav) </button>
+          <input 
+            className="ui-primary-input"  
+            type = "textfield"
+            name = "name"
+            id="name"
+            placeholder="Pokemon Name (enter here)"
+          />
         </div>
+        <br></br>
         <button onClick={this.saveFiles}>Submit</button>
         <a href={this.state.filePath} 
           style = {{display: (this.state.fileReadyToDownload ? 'block' : 'none')}}>
