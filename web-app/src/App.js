@@ -1,6 +1,7 @@
 import './App.css';
 import axios from 'axios'
 import React, { Component } from 'react'
+import loadImg from './loading.gif';
 
 
 class App extends React.Component {
@@ -9,7 +10,8 @@ class App extends React.Component {
     selectedFile2: null,
     selectedFile3: null,
     fileReadyToDownload: false,
-    filePath: null
+    filePath: null,
+    status: "INIT"
    }
   
   fileSelectedHandler1 = e => {
@@ -33,6 +35,7 @@ class App extends React.Component {
   
   saveFiles = async () => {
     const formData = new FormData();
+    this.setState({status: "LOADING"})
   
     console.log(this.state.selectedFile1.name)
     console.log(this.state.selectedFile2.name)
@@ -43,9 +46,10 @@ class App extends React.Component {
     var name = document.getElementById("name").value;
     formData.append('name',this.state.selectedFile3,name)
     // Send formData object
-    const resp = await axios.post("//localhost:5000/upload", formData);
-    this.setState({filePath: "http://localhost:5000/upload/" + resp.data})
+    const resp = await axios.post("http://www.whoisthat.lol:5000/upload", formData);
+    this.setState({filePath: "http://www.whoisthat.lol:5000/upload/" + resp.data})
     this.setState({fileReadyToDownload: true})
+    this.setState({status: "COMPLETE"})
   
   }
   render(){
@@ -53,9 +57,9 @@ class App extends React.Component {
     <div className="App">
       <header className="App-header">
         <h1>
-          Who is that Pokemon Generator.
+          Who is that Pokemon!? Generator.
         </h1>
-        The worlds only Who is that Pokemon Generator.
+        The world's only Who is that Pokemon!? Generator.
         <div><br></br><br></br></div>
         <div>
           <input 
@@ -95,7 +99,8 @@ class App extends React.Component {
           />
         </div>
         <br></br>
-        <button onClick={this.saveFiles}>Submit</button>
+        <button style={{display: (this.state.status === "LOADING" ? 'none' : 'block')}} disabled={(this.state.status === "LOADING")} onClick={this.saveFiles}>Submit</button>
+        <img src={loadImg} style={{display: (this.state.status === "LOADING" ? 'block' : 'none')}}/>
         <a href={this.state.filePath} 
           style = {{display: (this.state.fileReadyToDownload ? 'block' : 'none')}}>
           <button>Download</button>
