@@ -18,34 +18,39 @@ class App extends React.Component {
     this.setState({
       selectedFile1: e.target.files[0]
     })
-    console.log(e.target.files[0]);
   }
   fileSelectedHandler2 = e => {
     this.setState({
       selectedFile2: e.target.files[0]
     })
-    console.log(e.target.files[0]);
   }
   fileSelectedHandler3 = e => {
     this.setState({
       selectedFile3: e.target.files[0]
     })
-    console.log(e.target.files[0]);
   }
   
   saveFiles = async () => {
     const formData = new FormData();
-    this.setState({status: "LOADING"})
-  
-    console.log(this.state.selectedFile1.name)
-    console.log(this.state.selectedFile2.name)
-    console.log(this.state.selectedFile3.name)
+    var name = document.getElementById("name").value;
+    if (this.state.selectedFile1 === null) {
+      return (alert("Please upload pokemon picture!"));
+    }
+    if (this.state.selectedFile2 === null) {
+      return (alert("Please upload name sound!"));
+    }
+    if (this.state.selectedFile3 === null) {
+      return (alert("Please upload battle cry sound!"));
+    }
+    if (name === "") {
+      return (alert("Please enter a name for pokemon!"));
+    }
     formData.append('file1',this.state.selectedFile1, this.state.selectedFile1.name);
     formData.append('file2',this.state.selectedFile2, this.state.selectedFile2.name);
     formData.append('file3',this.state.selectedFile3, this.state.selectedFile3.name);
-    var name = document.getElementById("name").value;
     formData.append('name',this.state.selectedFile3,name)
     // Send formData object
+    this.setState({status: "LOADING"})
     const resp = await axios.post("http://www.whoisthat.lol:5000/upload", formData);
     this.setState({filePath: "http://www.whoisthat.lol:5000/upload/" + resp.data})
     this.setState({fileReadyToDownload: true})
